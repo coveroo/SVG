@@ -222,13 +222,27 @@ namespace Svg
         /// <exception cref="ArgumentNullException">The <paramref name="stream"/> parameter cannot be <c>null</c>.</exception>
         public static T Open<T>(Stream stream, Dictionary<string, string> entities) where T : SvgDocument, new()
         {
-            if (stream == null)
+            using (var reader = new StreamReader(stream, true))
             {
-                throw new ArgumentNullException("stream");
+                return Open<T>(reader, entities);
+            }
+        }
+
+        /// <summary>
+        /// Opens an SVG document from the specified <see cref="Stream"/> and adds the specified entities.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing the SVG document to open.</param>
+        /// <param name="entities">Custom entity definitions.</param>
+        /// <exception cref="ArgumentNullException">The <paramref name="stream"/> parameter cannot be <c>null</c>.</exception>
+        public static T Open<T>(TextReader textReader, Dictionary<string, string> entities) where T : SvgDocument, new()
+        {
+            if (textReader == null)
+            {
+                throw new ArgumentNullException("textReader");
             }
 
             // Don't close the stream via a dispose: that is the client's job.
-            var reader = new SvgTextReader(stream, entities);
+            var reader = new SvgTextReader(textReader, entities);
             reader.XmlResolver = new SvgDtdResolver();
             reader.WhitespaceHandling = WhitespaceHandling.None;
             return Open<T>(reader);
